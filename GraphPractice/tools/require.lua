@@ -1,0 +1,8 @@
+require("tools.ctype")
+require("tools.io")
+require("tools.math")
+require("tools.os")
+require("tools.string")
+require("tools.table")
+require("tools.util")
+Profiler = require("tools.profiler")
