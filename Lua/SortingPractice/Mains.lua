@@ -1,7 +1,7 @@
 require("tools.require")
 local Generators = require("Generators")
 function Main(sortFunc)
-    local numberArr = Generators:GenRandomNubmerArr(20)
+    local numberArr = Generators:GenRandomNubmerArr(10)
     print(table.dump(numberArr, false, 200) .. "\n")
     numberArr = sortFunc(numberArr)
     print(table.dump(numberArr, false, 200) .. "\n")

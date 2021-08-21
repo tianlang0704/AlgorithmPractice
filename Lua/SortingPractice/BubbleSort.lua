@@ -1,5 +1,4 @@
-require("tools.require")
-require("Mains")
+require ("Requires")
 
 local function BubbleSort(arr)
     for i = 1, #arr, 1 do

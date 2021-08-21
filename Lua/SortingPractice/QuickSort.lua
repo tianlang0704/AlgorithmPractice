@@ -1,5 +1,4 @@
-require("tools.require")
-require("Mains")
+require ("Requires")
 
 local function Swap(arr, idx1, idx2)
     local temp = arr[idx1]

@@ -1,4 +1,4 @@
-local Generator = require("Generator")
+require("Requires")
 
 function Dijkstra(graphInfo)
     -- 初始化距离表

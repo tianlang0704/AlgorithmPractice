@@ -1,5 +1,5 @@
-require("tools.require")
-require("Mains")
+require ("Requires")
+
 local function SubArr(arr, s, e)
     local newArr = {}
     
