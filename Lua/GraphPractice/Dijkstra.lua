@@ -1,6 +1,6 @@
 require("Requires")
 
-function Dijkstra(graphInfo)
+function Dijkstra(graphInfo, firstVIndex)
     -- 初始化距离表
     local vDistanceTable = {}
     for _, v in ipairs(graphInfo.verticesArr) do
@@ -8,14 +8,15 @@ function Dijkstra(graphInfo)
             distance = math.maxinteger,
         }
     end
-    local firstV = graphInfo.verticesArr[1]
+    local firstV = graphInfo.verticesArr[firstVIndex or 1]
     vDistanceTable[firstV].distance = 0
     -- 初始化要行走路径
-    local travelArr = {{distance = 0, v = firstV}}
+    local travelHeap = MaxMinHeap.new(function(a, b) return a.distance > b.distance end)
+    travelHeap:Push({distance = 0, v = firstV})
     -- 实际行走路径计算
     local vToEArrTable = graphInfo.vToEArrTable
-    while (#travelArr > 0) do
-        local curVInfo = table.remove(travelArr, 1)
+    while (travelHeap:GetCount() > 0) do
+        local curVInfo = travelHeap:Pop()
         local curV = curVInfo.v
         local curDis = curVInfo.distance
         local minDistance = vDistanceTable[curV].distance
@@ -35,7 +36,7 @@ function Dijkstra(graphInfo)
                     if (targetDistance < targetDistanceMin) then
                         vDistanceTable[edgeTarget].distance = targetDistance
                         vDistanceTable[edgeTarget].source = curV
-                        table.insert(travelArr, {                                       --TODO: 这里插入应该按距离优先插入
+                        travelHeap:Push({
                             distance = targetDistance,
                             v = edgeTarget,
                         })
@@ -48,7 +49,7 @@ function Dijkstra(graphInfo)
 end
 
 -- 根据点多多点信息重构路径
-function RebuildPath(vFrom, vDistanceTable)
+function RebuildDijkstraPath(vFrom, vDistanceTable)
     local pathArr = {}
     local distanceInfo = vDistanceTable[vFrom]
     while (distanceInfo) do
@@ -62,13 +63,14 @@ end
 
 function Main()
     local graphInfo = Generator:GenGraph(10)
-    local distanceTable = Dijkstra(graphInfo)
+    print(table.dump(graphInfo.verticesArr))
+    local distanceTable = Dijkstra(graphInfo, 3)
     print(table.dump(distanceTable, 200))
-    local pathArr = RebuildPath(graphInfo.verticesArr[#graphInfo.verticesArr], distanceTable)
+    local pathArr = RebuildDijkstraPath(graphInfo.verticesArr[#graphInfo.verticesArr], distanceTable)
     print(table.dump(pathArr, 200))
 end
 
-Main()
+-- Main()
 
 
 

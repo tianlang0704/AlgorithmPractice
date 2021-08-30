@@ -26,6 +26,11 @@ function Generator:GenGraph(vNumMax)
         vCount = vCount +1
     end
     local verticesArr = table.values(verticesTable)
+    -- ID到序号表
+    local idToIndexTable = {}
+    for index, value in ipairs(verticesArr) do
+        idToIndexTable[value] = index
+    end
     -- 生成连接两点的边
     local weightMax = 10
     local edgeCountMax = vNumMax
@@ -59,6 +64,7 @@ function Generator:GenGraph(vNumMax)
         verticesArr = verticesArr,
         edgeTable = edgeTable,
         vToEArrTable = vToEArrTable,
+        idToIndexTable = idToIndexTable,
     }
     return graphInfo
 end

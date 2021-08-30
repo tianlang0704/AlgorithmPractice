@@ -1,22 +1,26 @@
+require("Requires")
+
+local renderer = Renderer.New()
+
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
-  end
+end
 
 -- Load some default values for our rectangle.
 function love.load()
-    x, y, w, h = 20, 20, 60, 20
+    renderer:Setup(800, 600)
 end
 
--- Increase the size of the rectangle every frame.
+
 function love.update(dt)
-    w = w + 1
-    h = h + 1
+    renderer:Update(dt)
+end
+
+function love.wheelmoved(x, y)
+    renderer:WheelMoved(x, y)
 end
 
 -- Draw a coloured rectangle.
 function love.draw()
-    -- In versions prior to 11.0, color component values are (0, 102, 102)
-    love.graphics.setColor(0, 0.4, 0.4)
-    love.graphics.rectangle("fill", x, y, w, h)
-    love.graphics.print("test", 100, 100)
+    renderer:Draw()
 end

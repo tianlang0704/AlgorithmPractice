@@ -1,5 +1,4 @@
 require("Requires")
-local MaxMinHeap = require("MaxMinHeap")
 
 local function HeapSort(arr)
     local minHeap = MaxMinHeap.new()

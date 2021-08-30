@@ -1,8 +1,10 @@
 local MaxMinHeap = {}
 
-function MaxMinHeap.new(isMax)
+function MaxMinHeap.new(compareFunc)
     local inst = {}
-    inst.isMax = isMax
+    inst.compareFunc = compareFunc or function(a, b)
+        return a < b
+    end
     return setmetatable(inst, {
         __index = MaxMinHeap
     })
@@ -20,8 +22,7 @@ function MaxMinHeap:Pop()
     local count = #self.dataArr
     if (count <= 0) then return end
     if (count <= 1) then 
-        table.remove(self.dataArr, 1)
-        return
+        return table.remove(self.dataArr, 1)
     end
     local res = self.dataArr[1]
     self.dataArr[1] = table.remove(self.dataArr, #self.dataArr)
@@ -34,7 +35,7 @@ function MaxMinHeap:SiftUp(idx)
     local value = self.dataArr[idx]
     local idxParent = math.floor(idx / 2)
     local valueParent = self.dataArr[idxParent]
-    if ((self.isMax and value > valueParent) or (not self.isMax and value < valueParent)) then
+    if (self.compareFunc(value, valueParent)) then
         self.dataArr[idx] = valueParent
         self.dataArr[idxParent] = value
         self:SiftUp(idxParent)
@@ -49,7 +50,7 @@ function MaxMinHeap:SiftDown(idx)
     local idxChild2 = idx * 2 + 1
     local idxTargetChild
     if (idxChild1 <= count and idxChild2 <= count) then
-        local is1Better = ((self.isMax and self.dataArr[idxChild1] > self.dataArr[idxChild2]) or (not self.isMax and self.dataArr[idxChild1] < self.dataArr[idxChild2]))
+        local is1Better = self.compareFunc(self.dataArr[idxChild1], self.dataArr[idxChild2])
         idxTargetChild = is1Better and idxChild1 or idxChild2
     elseif (idxChild1 <= count) then
         idxTargetChild = idxChild1
@@ -58,7 +59,7 @@ function MaxMinHeap:SiftDown(idx)
     end
     if (idxTargetChild) then
         local valueChild = self.dataArr[idxTargetChild]
-        if ((self.isMax and valueChild > value) or (not self.isMax and valueChild < value)) then
+        if (self.compareFunc(valueChild, value)) then
             self.dataArr[idx] = valueChild
             self.dataArr[idxTargetChild] = value
             self:SiftDown(idxTargetChild)
@@ -77,6 +78,10 @@ function MaxMinHeap:GetSortedArr()
     end
     self.dataArr = tableCopy
     return resArr
+end
+
+function MaxMinHeap:GetCount()
+    return #self.dataArr
 end
 
 return MaxMinHeap
