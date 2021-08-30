@@ -21,6 +21,10 @@ function Renderer:Setup(width, height)
     love.window.setMode(self.width, self.height)
     self.model = Model.New()
     self.model:LoadTeapod(width, height)
+    self.model:SetPosition(Vector3.New(width / 2, height / 2, 0))
+    self.camera = Camera.New()
+    self.camera:SetSimpleProjection(50, 0.1, 1000)
+    self.camera:SetPosition(Vector3.New(width / 2, height / 2, -300))
 end
 
 local manualSpeedX = 10
@@ -31,6 +35,7 @@ local autoSeedY = 30
 local autoSeedZ = 30
 local mouseLastX, mouseLastY
 function Renderer:Update(dt)
+    -- 鼠标控制模型旋转
     if (love.mouse.isDown(1)) then
         local rotateAmount = Vector3.New()
         -- 鼠标X
@@ -57,14 +62,36 @@ function Renderer:Update(dt)
         mouseLastY = nil
     end
 
+    -- 键盘控制摄像机
+    local cameraSpeed = 10
+    local camPos = self.camera:GetTransform():GetTranslation()
+    if (love.keyboard.isDown("up")) then
+        self.camera:SetPosition(camPos + Vector3.New(0, 1, 0) * cameraSpeed)
+    elseif (love.keyboard.isDown("down")) then
+        self.camera:SetPosition(camPos + Vector3.New(0, -1, 0) * cameraSpeed)
+    elseif (love.keyboard.isDown("left")) then
+        self.camera:SetPosition(camPos + Vector3.New(1, 0, 0) * cameraSpeed)
+    elseif (love.keyboard.isDown("right")) then
+        self.camera:SetPosition(camPos + Vector3.New(-1, 0, 0) * cameraSpeed)
+    elseif (love.keyboard.isDown("home")) then
+        self.camera:SetPosition(camPos + Vector3.New(0, 0, 1) * cameraSpeed)
+    elseif (love.keyboard.isDown("end")) then
+        self.camera:SetPosition(camPos + Vector3.New(0, 0, -1) * cameraSpeed)
+    end
+
     -- 自动旋转
-    local nowRotQ = self.model:GetRotation()
-    local deltaAngleX = dt * autoSeedX % 360
-    local deltaAngleY = dt * autoSeedY % 360
-    local deltaAngleZ = dt * autoSeedZ % 360
-    local addQ = Quaternion.New()
-    addQ:SetByEuler(Vector3.New(deltaAngleX, deltaAngleY, deltaAngleZ))
-    self.model:SetRotationByQuaternion(nowRotQ * addQ)
+    if (love.keyboard.isDown("space")) then
+        self.isAutoRotate = not self.isAutoRotate
+    end
+    if (self.isAutoRotate) then
+        local nowRotQ = self.model:GetRotation()
+        local deltaAngleX = dt * autoSeedX % 360
+        local deltaAngleY = dt * autoSeedY % 360
+        local deltaAngleZ = dt * autoSeedZ % 360
+        local addQ = Quaternion.New()
+        addQ:SetByEuler(Vector3.New(deltaAngleX, deltaAngleY, deltaAngleZ))
+        self.model:SetRotationByQuaternion(nowRotQ * addQ)
+    end
 end
 
 -- 滚轮放大缩小
@@ -86,8 +113,9 @@ function Renderer:DrawModel(model)
     -- 获取颜色
     local color = model:GetColor()
     -- 模型世界坐标
-    local pointArr = model:GetWorldPointArr()
-    -- 
+    local modelWorldPointArr = model:GetWorldPointArr()
+    -- 处理相机
+    local pointArr = self.camera:ProcessProjection(modelWorldPointArr, self.width, self.height)
     -- -- 画三角形
     -- for i = 1, #pointArr, 3 do
     --     local triangleArr = {pointArr[i], pointArr[i+1], pointArr[i+2]}

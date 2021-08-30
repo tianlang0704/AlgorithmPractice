@@ -42,6 +42,7 @@ end
 
 function Vector3:ctor(x, y, z)
     self:SetXYZ(x, y, z)
+    self.w = 1
 end
 
 function Vector3:SetXYZ(x, y, z)

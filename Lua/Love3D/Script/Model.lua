@@ -25,7 +25,6 @@ end
 function Model:LoadTeapod(width, height)
 	self:ParsePointArrFromFile("teapot")
     self:ParsePatchArrFromFile("teapotBezierPatches")
-    self:SetPosition(Vector3.New(width / 2, height / 2, 0))
     self:SetScale(Vector3.New(60, 60, 60))
     self:SetColor(Color.New(1, 1, 1, 0.7))
 	self:ProcessBezierHandle()

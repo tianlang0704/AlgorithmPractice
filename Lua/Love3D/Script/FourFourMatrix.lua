@@ -1,5 +1,12 @@
 local FourFourMatrix = {}
 
+function FourFourMatrix.__tostring(t)
+    return  t.matrix[1][1] .. ", " .. t.matrix[1][2] .. ", " .. t.matrix[1][3] .. ", " .. t.matrix[1][4] .. "\n" ..
+            t.matrix[2][1] .. ", " .. t.matrix[2][2] .. ", " .. t.matrix[2][3] .. ", " .. t.matrix[2][4] .. "\n" ..
+            t.matrix[3][1] .. ", " .. t.matrix[3][2] .. ", " .. t.matrix[3][3] .. ", " .. t.matrix[3][4] .. "\n" ..
+            t.matrix[4][1] .. ", " .. t.matrix[4][2] .. ", " .. t.matrix[4][3] .. ", " .. t.matrix[4][4] .. "\n"
+end
+
 function FourFourMatrix.__index(t, k)
     local var = rawget(FourFourMatrix, k)
 	if var ~= nil then
@@ -89,6 +96,7 @@ function FourFourMatrix:MultiplyVector3(v3)
     resV3.x = self.matrix[1][1] * v3.x + self.matrix[1][2] * v3.y + self.matrix[1][3] * v3.z + self.matrix[4][1]
     resV3.y = self.matrix[2][1] * v3.x + self.matrix[2][2] * v3.y + self.matrix[2][3] * v3.z + self.matrix[4][2]
     resV3.z = self.matrix[3][1] * v3.x + self.matrix[3][2] * v3.y + self.matrix[3][3] * v3.z + self.matrix[4][3]
+    resV3.w = self.matrix[4][1] * v3.x + self.matrix[4][2] * v3.y + self.matrix[4][3] * v3.z + self.matrix[4][4]
     return resV3
 end
 
@@ -146,6 +154,51 @@ function FourFourMatrix:Multiply44Matrix(m4)
     resM4.matrix[3][4] = self31 * target14 + self32 * target24 + self33 * target34 + self34 * target44
     resM4.matrix[4][4] = self41 * target14 + self42 * target24 + self43 * target34 + self44 * target44
     return resM4
+end
+
+function FourFourMatrix:Invert()
+    local m = self.matrix
+    local A3434 = m[3][3] * m[4][4] - m[3][4] * m[4][3]
+    local A2434 = m[3][2] * m[4][4] - m[3][4] * m[4][2]
+    local A2334 = m[3][2] * m[4][3] - m[3][3] * m[4][2]
+    local A1434 = m[3][1] * m[4][4] - m[3][4] * m[4][1]
+    local A1334 = m[3][1] * m[4][3] - m[3][3] * m[4][1]
+    local A1234 = m[3][1] * m[4][2] - m[3][2] * m[4][1]
+    local A3424 = m[2][3] * m[4][4] - m[2][4] * m[4][3]
+    local A2424 = m[2][2] * m[4][4] - m[2][4] * m[4][2]
+    local A2324 = m[2][2] * m[4][3] - m[2][3] * m[4][2]
+    local A3423 = m[2][3] * m[3][4] - m[2][4] * m[3][3]
+    local A2423 = m[2][2] * m[3][4] - m[2][4] * m[3][2]
+    local A2323 = m[2][2] * m[3][3] - m[2][3] * m[3][2]
+    local A1424 = m[2][1] * m[4][4] - m[2][4] * m[4][1]
+    local A1324 = m[2][1] * m[4][3] - m[2][3] * m[4][1]
+    local A1423 = m[2][1] * m[3][4] - m[2][4] * m[3][1]
+    local A1323 = m[2][1] * m[3][3] - m[2][3] * m[3][1]
+    local A1224 = m[2][1] * m[4][2] - m[2][2] * m[4][1]
+    local A1223 = m[2][1] * m[3][2] - m[2][2] * m[3][1]
+    local det =   m[1][1] * (m[2][2] * A3434 - m[2][3] * A2434 + m[2][4] * A2334)
+                - m[1][2] * (m[2][1] * A3434 - m[2][3] * A1434 + m[2][4] * A1334)
+                + m[1][3] * (m[2][1] * A2434 - m[2][2] * A1434 + m[2][4] * A1234)
+                - m[1][4] * (m[2][1] * A2334 - m[2][2] * A1334 + m[2][3] * A1234)
+    det = 1 / det
+    local res44 = FourFourMatrix.New()
+    res44.matrix[1][1] = det *   (m[2][2] * A3434 - m[2][3] * A2434 + m[2][4] * A2334)
+    res44.matrix[1][2] = det * - (m[1][2] * A3434 - m[1][3] * A2434 + m[1][4] * A2334)
+    res44.matrix[1][3] = det *   (m[1][2] * A3424 - m[1][3] * A2424 + m[1][4] * A2324)
+    res44.matrix[1][4] = det * - (m[1][2] * A3423 - m[1][3] * A2423 + m[1][4] * A2323)
+    res44.matrix[2][1] = det * - (m[2][1] * A3434 - m[2][3] * A1434 + m[2][4] * A1334)
+    res44.matrix[2][2] = det *   (m[1][1] * A3434 - m[1][3] * A1434 + m[1][4] * A1334)
+    res44.matrix[2][3] = det * - (m[1][1] * A3424 - m[1][3] * A1424 + m[1][4] * A1324)
+    res44.matrix[2][4] = det *   (m[1][1] * A3423 - m[1][3] * A1423 + m[1][4] * A1323)
+    res44.matrix[3][1] = det *   (m[2][1] * A2434 - m[2][2] * A1434 + m[2][4] * A1234)
+    res44.matrix[3][2] = det * - (m[1][1] * A2434 - m[1][2] * A1434 + m[1][4] * A1234)
+    res44.matrix[3][3] = det *   (m[1][1] * A2424 - m[1][2] * A1424 + m[1][4] * A1224)
+    res44.matrix[3][4] = det * - (m[1][1] * A2423 - m[1][2] * A1423 + m[1][4] * A1223)
+    res44.matrix[4][1] = det * - (m[2][1] * A2334 - m[2][2] * A1334 + m[2][3] * A1234)
+    res44.matrix[4][2] = det *   (m[1][1] * A2334 - m[1][2] * A1334 + m[1][3] * A1234)
+    res44.matrix[4][3] = det * - (m[1][1] * A2324 - m[1][2] * A1324 + m[1][3] * A1224)
+    res44.matrix[4][4] = det *   (m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223)
+    return res44
 end
 
 return FourFourMatrix
