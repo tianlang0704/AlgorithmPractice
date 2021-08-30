@@ -20,16 +20,15 @@ function Renderer:Setup(width, height)
     self.height = height or self.height
     love.window.setMode(self.width, self.height)
     self.model = Model.New()
-    -- self.model:SetPointArr({Vector3.New(10, 10, 10), Vector3.New(200,150, 10), Vector3.New(150,300, 10)})
     self.model:LoadTeapod(width, height)
 end
 
 local manualSpeedX = 10
 local manualSpeedY = 10
 local manualSpeedZ = 10
-local autoSeedX = 50
-local autoSeedY = 50
-local autoSeedZ = 50
+local autoSeedX = 30
+local autoSeedY = 30
+local autoSeedZ = 30
 local mouseLastX, mouseLastY
 function Renderer:Update(dt)
     if (love.mouse.isDown(1)) then
@@ -58,16 +57,17 @@ function Renderer:Update(dt)
         mouseLastY = nil
     end
 
-    -- -- 自动旋转
-    -- local nowRotQ = self.model:GetRotation()
-    -- local deltaAngleX = dt * autoSeedX % 360
-    -- local deltaAngleY = dt * autoSeedY % 360
-    -- local deltaAngleZ = dt * autoSeedZ % 360
-    -- local addQ = Quaternion.New()
-    -- addQ:SetByEuler(Vector3.New(deltaAngleX, deltaAngleY, deltaAngleZ))
-    -- self.model:SetRotationByQuaternion(nowRotQ * addQ)
+    -- 自动旋转
+    local nowRotQ = self.model:GetRotation()
+    local deltaAngleX = dt * autoSeedX % 360
+    local deltaAngleY = dt * autoSeedY % 360
+    local deltaAngleZ = dt * autoSeedZ % 360
+    local addQ = Quaternion.New()
+    addQ:SetByEuler(Vector3.New(deltaAngleX, deltaAngleY, deltaAngleZ))
+    self.model:SetRotationByQuaternion(nowRotQ * addQ)
 end
 
+-- 滚轮放大缩小
 local scaleFactor = 2
 function Renderer:WheelMoved(x, y)
     local modelTransform = self.model:GetTransform()
@@ -85,47 +85,37 @@ end
 function Renderer:DrawModel(model)
     -- 获取颜色
     local color = model:GetColor()
-    -- 变形到世界坐标
-    local quat = model:GetRotation()
-    local transform = model:GetTransform()
-    local pointArr = Util:TableCopy(model:GetProcessedPointArr())
-    local anchor = model:GetAnchor()
-    for index, v3 in ipairs(pointArr) do
-        local v3AfterRotation = quat * (v3 - anchor) + anchor
-        pointArr[index] = transform * v3AfterRotation
-    end
-    -- 画三角形
-    for i = 1, #pointArr, 3 do
-        local triangleArr = {pointArr[i], pointArr[i+1], pointArr[i+2]}
-        self:DrawOneTriangle(triangleArr, color)
-    end
-    -- -- 画线
+    -- 模型世界坐标
+    local pointArr = model:GetWorldPointArr()
+    -- 
+    -- -- 画三角形
     -- for i = 1, #pointArr, 3 do
-    --     local triangleArr = {pointArr[i], pointArr[i + 1]}
-    --     self:DrawLine(triangleArr, color)
-    --     local triangleArr = {pointArr[i + 1], pointArr[i + 2]}
-    --     self:DrawLine(triangleArr, color)
-    --     local triangleArr = {pointArr[i + 2], pointArr[i]}
-    --     self:DrawLine(triangleArr, color)
+    --     local triangleArr = {pointArr[i], pointArr[i+1], pointArr[i+2]}
+    --     self:DrawOneTriangle(triangleArr, color)
     -- end
+    -- 画线
+    for i = 1, #pointArr, 3 do
+        local triangleArr = {pointArr[i], pointArr[i + 1]}
+        self:DrawLine(triangleArr, color)
+        local triangleArr = {pointArr[i + 1], pointArr[i + 2]}
+        self:DrawLine(triangleArr, color)
+        local triangleArr = {pointArr[i + 2], pointArr[i]}
+        self:DrawLine(triangleArr, color)
+    end
     -- -- 画点阵
     -- for _, point in ipairs(pointArr) do
     --     self:DrawPoint(point, color, true)
     -- end
-    -- local controlV3Arr = self.model:GetPointArr()
-    -- for _, v3 in ipairs(controlV3Arr) do
-    --     local v3AfterRotation = quat * (v3 - anchor) + anchor
-    --     v3 = transform * v3AfterRotation
-    --     self:DrawPoint(v3, Color.New(1, 0, 0, 1))
-    -- end
 end
 
-function Renderer:DrawOneTriangle(pointArr, color)
+function Renderer:DrawOneTriangle(pointArr, color, isDrawPoints, isDrawMidPoints)
     table.sort(pointArr, function(a, b) return a.y < b.y end)
     local v1, v2, v3 = pointArr[1], pointArr[2], pointArr[3]
-    self:DrawPoint(v1, Color.New(1, 0, 0, 1))
-    self:DrawPoint(v2, Color.New(1, 0, 0, 1))
-    self:DrawPoint(v3, Color.New(1, 0, 0, 1))
+    if (isDrawPoints) then
+        self:DrawPoint(v1, Color.New(1, 0, 0, 1))
+        self:DrawPoint(v2, Color.New(1, 0, 0, 1))
+        self:DrawPoint(v3, Color.New(1, 0, 0, 1))
+    end
     if (v2.y == v3.y) then
         self:FillBottomFlatTriangle(pointArr, color)
     elseif (v1.y == v2.y) then
@@ -139,7 +129,9 @@ function Renderer:DrawOneTriangle(pointArr, color)
         local v2p = Vector3.New(v2.x, v2.y + 1)
         local v4 = Vector3.New(v1.x + shortW, v2.y)
         local v4p = Vector3.New(v4.x, v4.y + 1)
-        -- self:DrawPoint(v4, Color.New(1, 0, 0, 1))
+        if (isDrawPoints and isDrawMidPoints) then
+            self:DrawPoint(v4, Color.New(1, 0, 0, 1))
+        end
         self:FillBottomFlatTriangle({v1, v2, v4}, color)
         self:FillTopFlatTriangle({v4p, v2p, v3}, color)
     end
